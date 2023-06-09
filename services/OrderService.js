@@ -108,7 +108,7 @@ async getAllOrders() {
           orderId,
           userId,
           userName,
-          fullName, 
+          fullName,
           userEmail,
           orderStatus,
           discount: `${discount * 100}%`,
