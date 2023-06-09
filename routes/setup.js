@@ -20,6 +20,7 @@ router.post('/', async (req, res) => {
       res.jsend.fail({ message: 'Received data is not an array. Import aborted.' });
     } else if (importResult === 'importSuccess') {
       const adminData = {
+        fullname: 'Admin',
         username: 'Admin',
         email: 'admin@test.com',
         password: 'admin_password',
@@ -30,6 +31,7 @@ router.post('/', async (req, res) => {
         const hashedPassword = crypto.pbkdf2Sync(adminData.password, salt, 310000, 32, 'sha256');
 
         const newUser = await db.User.create({
+          fullname: adminData.fullname,
           username: adminData.username,
           email: adminData.email,
           EncryptedPassword: hashedPassword,

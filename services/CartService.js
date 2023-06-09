@@ -31,6 +31,7 @@ class CartService {
           c.id AS cartId,
           u.id AS userId,
           u.username AS userName,
+          u.fullname AS fullName,
           ci.id AS cartItemId,
           ci.quantity,
           i.id AS itemId,
@@ -54,13 +55,14 @@ class CartService {
       const carts = {};
   
       for (const row of results) {
-        const { cartId, userId, userName, cartItemId, ...item } = row;
+        const { cartId, userId, userName, fullName, cartItemId, ...item } = row;
   
         if (!carts[cartId]) {
           carts[cartId] = {
             cartId,
             userId,
             userName,
+            fullName, 
             cartItems: [],
           };
         }

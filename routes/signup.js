@@ -8,9 +8,12 @@ const jwt = require('jsonwebtoken');
 router.use(jsend.middleware);
 
 router.post("/", async (req, res) => {
-  const { username, email, password } = req.body;
+  const { fullname, username, email, password } = req.body;
+  if (!fullname) {
+    return res.jsend.fail({ fullname: "Fullname is required." });
+  }
   if (!username) {
-    return res.jsend.fail({ username: "username is required." });
+    return res.jsend.fail({ username: "Username is required." });
   }
   if (!email) {
     return res.jsend.fail({ email: "Email is required." });
@@ -30,6 +33,7 @@ router.post("/", async (req, res) => {
     );
 
     const newUser = await db.User.create({
+      fullname: fullname,
       username: username,
       email: email,
       EncryptedPassword: hashedPassword,

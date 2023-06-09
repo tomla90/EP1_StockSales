@@ -54,81 +54,83 @@ class OrderService {
     };
 }
   
-  async getAllOrders() {
-    try {
-      const query = `
-        SELECT
-          o.id AS orderId,
-          u.id AS userId,
-          u.username AS userName,
-          u.email AS userEmail,
-          oi.id AS orderItemId,
-          oi.quantity,
-          i.id AS itemId,
-          i.item_name,
-          i.description,
-          i.price,
-          i.img_url,
-          i.sku,
-          i.stock_quantity,
-          o.status AS orderStatus
-        FROM
-          Orders AS o
-          INNER JOIN Users AS u ON o.userId = u.id
-          LEFT JOIN OrderItems AS oi ON o.id = oi.orderId
-          LEFT JOIN Items AS i ON oi.itemId = i.id
-        ORDER BY
-          o.id, oi.id
-      `;
-  
-      const [results] = await this.db.sequelize.query(query);
-  
-      const orders = {};
-  
-      for (const row of results) {
-        const { orderId, userId, userName, userEmail, orderItemId, orderStatus, ...item } = row;
-  
-        if (!orders[orderId]) {
-          const usersWithSameEmail = await this.User.count({
-            where: { email: userEmail },
-          });
-  
-          let discount = 0;
-  
-          if (usersWithSameEmail === 2) {
-            discount = 0.10;
-          } else if (usersWithSameEmail === 3) {
-            discount = 0.30;
-          } else if (usersWithSameEmail >= 4) {
-            discount = 0.40;
-          }
-  
-          orders[orderId] = {
-            orderId,
-            userId,
-            userName,
-            userEmail,
-            orderStatus,
-            discount: `${discount * 100}%`,
-            usersWithSameEmail,
-            orderItems: [],
-          };
+async getAllOrders() {
+  try {
+    const query = `
+      SELECT
+        o.id AS orderId,
+        u.id AS userId,
+        u.username AS userName,
+        u.fullname AS fullName,
+        u.email AS userEmail,
+        oi.id AS orderItemId,
+        oi.quantity,
+        i.id AS itemId,
+        i.item_name,
+        i.description,
+        i.price,
+        i.img_url,
+        i.sku,
+        i.stock_quantity,
+        o.status AS orderStatus
+      FROM
+        Orders AS o
+        INNER JOIN Users AS u ON o.userId = u.id
+        LEFT JOIN OrderItems AS oi ON o.id = oi.orderId
+        LEFT JOIN Items AS i ON oi.itemId = i.id
+      ORDER BY
+        o.id, oi.id
+    `;
+
+    const [results] = await this.db.sequelize.query(query);
+
+    const orders = {};
+
+    for (const row of results) {
+      const { orderId, userId, userName, fullName, userEmail, orderItemId, orderStatus, ...item } = row;
+
+      if (!orders[orderId]) {
+        const usersWithSameEmail = await this.User.count({
+          where: { email: userEmail },
+        });
+
+        let discount = 0;
+
+        if (usersWithSameEmail === 2) {
+          discount = 0.10;
+        } else if (usersWithSameEmail === 3) {
+          discount = 0.30;
+        } else if (usersWithSameEmail >= 4) {
+          discount = 0.40;
         }
-  
-        if (orderItemId) {
-          orders[orderId].orderItems.push({
-            orderItemId,
-            ...item,
-          });
-        }
+
+        orders[orderId] = {
+          orderId,
+          userId,
+          userName,
+          fullName, 
+          userEmail,
+          orderStatus,
+          discount: `${discount * 100}%`,
+          usersWithSameEmail,
+          orderItems: [],
+        };
       }
-  
-      return Object.values(orders);
-    } catch (error) {
-      console.error('Error retrieving orders:', error);
-      throw error;
+
+      if (orderItemId) {
+        orders[orderId].orderItems.push({
+          orderItemId,
+          ...item,
+        });
+      }
     }
+
+    return Object.values(orders);
+  } catch (error) {
+    console.error('Error retrieving orders:', error);
+    throw error;
   }
+}
   
   
   async createOrder(userId, itemId) {
@@ -342,6 +344,7 @@ class OrderService {
       orderId: order.id,
       userId: order.user.id,
       userName: order.user.username,
+      fullName: order.user.fullname, 
       userDiscount: `${discount * 100}%`,
       usersWithSameEmail,
       orderStatus: order.status,

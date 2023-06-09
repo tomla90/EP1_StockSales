@@ -38,7 +38,7 @@ class ItemService {
                 console.log('Category not found, no category assigned to item');
             }
         }
-        // Fetch the item again along with its categories
+        
         const itemWithCategories = await this.Item.findOne({ 
             where: { id: item.id },
             include: [{
