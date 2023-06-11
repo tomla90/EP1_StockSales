@@ -12,7 +12,7 @@ class CartService {
 
   async getCart(userId) {
     return this.Cart.findOne({
-      where: { userId },
+      where: { userId: userId },
       include: {
         model: this.CartItem,
         as: 'cartItems',
