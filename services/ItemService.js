@@ -1,4 +1,4 @@
-const axios = require('axios');
+const { Op } = require('sequelize');
 
 class ItemService {
   constructor(db, CategoryService) {
@@ -9,16 +9,36 @@ class ItemService {
   }
 
   
-  async getAllItems() {
-  return this.Item.findAll({
-    include: [{
-      model: this.Category,
-      as: 'categories',
-      attributes: ['id', 'category'], 
-      through: { attributes: [] }, 
-    }]
-  });
-}
+  async getAllItems(user = null) {
+    try {
+      const items = user
+        ? await this.Item.findAll({
+            include: [
+              {
+                model: this.Category,
+                as: 'categories',
+                attributes: ['id', 'category'],
+                through: { attributes: [] },
+              },
+            ],
+          })
+        : await this.Item.findAll({
+            where: { stock_quantity: { [Op.gt]: 0 } },
+            include: [
+              {
+                model: this.Category,
+                as: 'categories',
+                attributes: ['id', 'category'],
+                through: { attributes: [] },
+              },
+            ],
+          });
+      return items;
+    } catch (error) {
+      console.error('Error getting all items:', error);
+      throw error;
+    }
+  }
 
   async getItemById(itemId) {
     return this.Item.findOne({ where: { id: itemId } });
