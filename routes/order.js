@@ -13,7 +13,7 @@ router.use(jsend.middleware);
 
 
 
-router.post('/:itemId?', authenticateJWT, async (req, res) => {
+router.post('/:itemId?', authenticateJWT, authorizeRoles('Admin', 'User'), async (req, res) => {
   const { itemId } = req.params;
 
   try {

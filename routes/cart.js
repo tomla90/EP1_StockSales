@@ -9,7 +9,7 @@ const authorizeRoles = require('../middleware/authorizeRoles');
 
 router.use(jsend.middleware);
 
-router.get('/', authenticateJWT, async (req, res) => {
+router.get('/', authenticateJWT, authorizeRoles('Admin', 'User'), async (req, res) => {
   try {
     const cart = await cartService.getCart(req.user.id);
     res.jsend.success({ cart });
@@ -20,7 +20,7 @@ router.get('/', authenticateJWT, async (req, res) => {
 
 
 
-router.delete('/:cartId', authenticateJWT, async (req, res) => {
+router.delete('/:cartId', authenticateJWT, authorizeRoles('Admin', 'User'), async (req, res) => {
   try {
     const { cartId } = req.params;
     const userId = req.user.id;

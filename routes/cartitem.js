@@ -10,7 +10,7 @@ const authorizeRoles = require('../middleware/authorizeRoles');
 router.use(jsend.middleware);
 
 
-router.post('/', authenticateJWT, async (req, res) => {
+router.post('/', authenticateJWT, authorizeRoles('Admin', 'User'), async (req, res) => {
     try {
       const { itemId, quantity } = req.body;
       const newCartItem = await cartService.addItemToCart(req.user.id, itemId, quantity);
@@ -22,7 +22,7 @@ router.post('/', authenticateJWT, async (req, res) => {
 
 
 
-  router.put('/:id', authenticateJWT, async (req, res) => {
+  router.put('/:id', authenticateJWT, authorizeRoles('Admin', 'User'), async (req, res) => {
     try {
       const { quantity } = req.body;    
       const updatedCartItem = await cartService.updateCartItem(req.user.id, req.params.id, quantity);
@@ -34,7 +34,7 @@ router.post('/', authenticateJWT, async (req, res) => {
 
 
 
-  router.delete('/:id', authenticateJWT, async (req, res) => {
+  router.delete('/:id', authenticateJWT, authorizeRoles('Admin', 'User'), async (req, res) => {
     try {
       await cartService.deleteCartItem(req.user.id, req.params.id);
       res.jsend.success({ message: 'Cart item deleted' });
