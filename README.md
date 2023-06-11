@@ -11,9 +11,13 @@ This API is designed as a backend for a fictive online store. It manages users, 
 - Step 3: Create a .env file in the project root directory and copy/paste the environment variables from the .env section in the README file into your newly created .env file.
 
 - Step 4: Create a database in mySQL with following script:
+    
     CREATE DATABASE StockSalesDB;
+    
     CREATE USER 'admin'@'localhost' IDENTIFIED WITH mysql_native_password BY 'P@ssw0rd';
+    
     ALTER USER 'admin'@'localhost' IDENTIFIED WITH mysql_native_password BY 'P@ssw0rd';
+    
     GRANT ALL PRIVILEGES ON StockSalesDB.* TO 'admin'@'localhost';
 
 - Step 5: Open your terminal, navigate to the project folder, and run npm install.
@@ -35,11 +39,17 @@ Remember to stop the server when you're done by pressing Ctrl+C in your terminal
 ## .env
 
 DATABASE_NAME=StockSalesDB
+
 ADMIN_USERNAME=admin
+
 ADMIN_PASSWORD=P@ssw0rd
+
 DIALECT=mysql
+
 HOST=localhost
+
 SECRET=23bc563cfdc35af7f77fc2259757cacc1e167498c737e539aa933a5595dead1d
+
 BASE_URL=http://localhost:3000
 
 
