@@ -89,28 +89,32 @@ async findCategoryById(id) {
 }
 
 
-  async updateItem(itemId, updatedData, newCategoryId) {
-    try {
-    
-      await this.Item.update(updatedData, { where: { id: itemId } });
+async updateItem(itemId, updatedData, newCategoryId) {
+  try {
+    await this.Item.update(updatedData, { where: { id: itemId } });
 
-     
-      if (newCategoryId) {
-        const itemCategory = await this.ItemCategory.findOne({ where: { itemId: itemId } });
+    if (newCategoryId) {
+      const item = await this.Item.findOne({ where: { id: itemId } });
 
-        if (itemCategory) {
-          await itemCategory.update({ categoryId: newCategoryId });
+      if (item) {
+        const newCategory = await this.findCategoryById(newCategoryId);
+        
+        if (newCategory) {
+          await item.setCategories(newCategory);
         } else {
-          throw new Error("Item's category not found");
+          console.log('New category not found, no category assigned to item');
         }
+      } else {
+        throw new Error("Item not found");
       }
-
-      return this.getItemById(itemId);
-    } catch (error) {
-      console.error('Error updating item:', error);
-      throw error;
     }
+
+    return this.getItemById(itemId);
+  } catch (error) {
+    console.error('Error updating item:', error);
+    throw error;
   }
+}
 
   async deleteItem(itemId) {
     return this.Item.destroy({ where: { id: itemId } });
