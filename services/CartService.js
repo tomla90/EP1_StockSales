@@ -108,26 +108,44 @@ class CartService {
   
     return cartItem;
   }
-  async updateCartItem(userId, itemId, quantity) {
-    const item = await this.Item.findOne({ where: { id: itemId } });
-
-    if (!item || item.stock_quantity < quantity) {
+  async updateCartItem(userId, cartItemId, quantity) {
+    const cartItem = await this.CartItem.findOne({ where: { id: cartItemId } });
+  
+    if (!cartItem) {
+      throw new Error('Cart item not found');
+    }
+    const item = await this.Item.findOne({ where: { id: cartItem.itemId } });
+      if (!item) {
+      throw new Error('Item does not exist');
+    }
+    if (item.stock_quantity < quantity) {
       throw new Error('Insufficient stock');
     }
+  
+    const updatedCartItem = await cartItem.update({ quantity });
 
-    return this.CartItem.update(
-      { quantity },
-      { where: { id: itemId, cartId: userId } }
-    );
-  }
+    return updatedCartItem;
+}
 
   async deleteCartItem(userId, itemId) {
-    return this.CartItem.destroy({ where: { id: itemId, cartId: userId } });
-  }
+ 
+    const cart = await this.getCart(userId);
+    
+    if (!cart) {
+        throw new Error('No cart found for this user');
+    }
 
-  async deleteCart(cartId, userId) {
-    return this.Cart.destroy({ where: { id: cartId, userId } });
-  }
+    return this.CartItem.destroy({ where: { id: itemId, cartId: cart.id } });
+}
+
+
+async deleteCart(cartId, userId) {
+   
+await this.CartItem.destroy({ where: { cartId: cartId } });
+
+   
+   return this.Cart.destroy({ where: { id: cartId, userId: userId } });
+}
 }
 
 module.exports = CartService;

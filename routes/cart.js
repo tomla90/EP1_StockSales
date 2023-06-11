@@ -9,7 +9,7 @@ const authorizeRoles = require('../middleware/authorizeRoles');
 
 router.use(jsend.middleware);
 
-router.get('/', authenticateJWT,authorizeRoles('User'), async (req, res) => {
+router.get('/', authenticateJWT, async (req, res) => {
   try {
     const cart = await cartService.getCart(req.user.id);
     res.jsend.success({ cart });

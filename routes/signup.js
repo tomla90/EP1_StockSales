@@ -4,6 +4,7 @@ const jsend = require('jsend');
 const db = require("../models");
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
+const regex = require('../utils/regex');
 
 router.use(jsend.middleware);
 
@@ -12,14 +13,14 @@ router.post("/", async (req, res) => {
   if (!fullname) {
     return res.jsend.fail({ fullname: "Fullname is required." });
   }
-  if (!username) {
-    return res.jsend.fail({ username: "Username is required." });
+  if (!username || !regex.username.test(username)) {
+    return res.jsend.fail({ username: "Username is not valid or is already taken." });
   }
-  if (!email) {
-    return res.jsend.fail({ email: "Email is required." });
+  if (!email || !regex.email.test(email)) {
+    return res.jsend.fail({ email: "Email is not valid." });
   }
-  if (!password) {
-    return res.jsend.fail({ password: "Password is required." });
+  if (!password || !regex.passwordLength.test(password)) {
+    return res.jsend.fail({ password: "Password should be at least 8 characters." });
   }
 
   try {
