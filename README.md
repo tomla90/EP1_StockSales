@@ -55,4 +55,4 @@ BASE_URL=http://localhost:3000
 
 ### For a concise summary of the project progression, challenges, and database structure, please refer to the "Retrospective Report.pdf" in Documentation folder within the project.
 
-### Check out the "Postman.pdf" in the Documentation folder for info on using the database and endpoints. You can also find this online at " https://documenter.getpostman.com/view/25199058/2s93sc5YUg " for examples on all of the endpoints etc.
+### Check out the "Postman.pdf" in the Documentation folder for info on using the database and endpoints. You can also find this online at " https://documenter.getpostman.com/view/25199058/2s93sc5YUg ". The online version also includes examples.
