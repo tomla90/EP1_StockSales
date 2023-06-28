@@ -1,14 +1,13 @@
-const express = require('express');
-const jsend = require('jsend');
+const express = require("express");
+const jsend = require("jsend");
 const router = express.Router();
-const CategoryService = require('../services/CategoryService');
-const db = require('../models');
+const CategoryService = require("../services/CategoryService");
+const db = require("../models");
 const categoryService = new CategoryService(db);
-
 
 router.use(jsend.middleware);
 
-router.get('/', async (req, res, next) => {
+router.get("/", async (req, res, next) => {
   try {
     const categories = await categoryService.getAllCategories();
     res.jsend.success({ categories });
@@ -16,6 +15,5 @@ router.get('/', async (req, res, next) => {
     res.jsend.fail({ error: error.message });
   }
 });
-
 
 module.exports = router;

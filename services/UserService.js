@@ -1,8 +1,8 @@
-const crypto = require('crypto');
+const crypto = require("crypto");
 
 class UserService {
   constructor(db) {
-    this.Users = db.users; 
+    this.Users = db.users;
     this.db = db;
   }
 
@@ -15,22 +15,20 @@ class UserService {
   }
 
   async createUser(userData) {
-    console.log('Creating user with data:', userData);
+    console.log("Creating user with data:", userData);
     try {
-     
       const hashedPassword = crypto
-        .createHash('sha256')
+        .createHash("sha256")
         .update(userData.password)
-        .digest('hex');
+        .digest("hex");
 
-    
       userData.password = hashedPassword;
 
       const user = await this.Users.create(userData);
-      console.log('Created user:', user);
+      console.log("Created user:", user);
       return user;
     } catch (error) {
-      console.error('Error creating user:', error);
+      console.error("Error creating user:", error);
       throw error;
     }
   }
@@ -51,6 +49,5 @@ class UserService {
     return user;
   }
 }
-
 
 module.exports = UserService;

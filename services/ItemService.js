@@ -1,14 +1,13 @@
-const { Op } = require('sequelize');
+const { Op } = require("sequelize");
 
 class ItemService {
   constructor(db, CategoryService) {
     this.Item = db.Item;
     this.ItemCategory = db.ItemCategories;
     this.CategoryService = CategoryService;
-    this.Category = db.Category
+    this.Category = db.Category;
   }
 
-  
   async getAllItems(user = null) {
     try {
       const items = user
@@ -16,8 +15,8 @@ class ItemService {
             include: [
               {
                 model: this.Category,
-                as: 'categories',
-                attributes: ['id', 'category'],
+                as: "categories",
+                attributes: ["id", "category"],
                 through: { attributes: [] },
               },
             ],
@@ -27,15 +26,15 @@ class ItemService {
             include: [
               {
                 model: this.Category,
-                as: 'categories',
-                attributes: ['id', 'category'],
+                as: "categories",
+                attributes: ["id", "category"],
                 through: { attributes: [] },
               },
             ],
           });
       return items;
     } catch (error) {
-      console.error('Error getting all items:', error);
+      console.error("Error getting all items:", error);
       throw error;
     }
   }
@@ -45,81 +44,82 @@ class ItemService {
   }
 
   async createItem(itemData, categoryId) {
-    console.log('Creating item with data:', itemData);
+    console.log("Creating item with data:", itemData);
     try {
-        const item = await this.Item.create(itemData);
-        console.log('Created item:', item);
-        if (categoryId) {
-            const category = await this.findCategoryById(categoryId);
-            if (category) {
-                await this.ItemCategory.create({ itemId: item.id, categoryId: category.id });
-                console.log('Assigned category to item');
-            } else {
-                console.log('Category not found, no category assigned to item');
-            }
+      const item = await this.Item.create(itemData);
+      console.log("Created item:", item);
+      if (categoryId) {
+        const category = await this.findCategoryById(categoryId);
+        if (category) {
+          await this.ItemCategory.create({
+            itemId: item.id,
+            categoryId: category.id,
+          });
+          console.log("Assigned category to item");
+        } else {
+          console.log("Category not found, no category assigned to item");
         }
-        
-        const itemWithCategories = await this.Item.findOne({ 
-            where: { id: item.id },
-            include: [{
-              model: this.Category,
-              as: 'categories',
-              attributes: ['id', 'category'], 
-              through: { attributes: [] },
-            }]
-        });
-        return itemWithCategories;
+      }
+
+      const itemWithCategories = await this.Item.findOne({
+        where: { id: item.id },
+        include: [
+          {
+            model: this.Category,
+            as: "categories",
+            attributes: ["id", "category"],
+            through: { attributes: [] },
+          },
+        ],
+      });
+      return itemWithCategories;
     } catch (error) {
-        console.error('Error creating item:', error);
-        throw error;
+      console.error("Error creating item:", error);
+      throw error;
     }
-}
-  
-async findCategoryById(id) {
-  try {
+  }
+
+  async findCategoryById(id) {
+    try {
       const category = await this.Category.findOne({
-          where: { id: id }
+        where: { id: id },
       });
 
       return category;
-  } catch (error) {
-      console.error('Error finding category:', error);
+    } catch (error) {
+      console.error("Error finding category:", error);
       throw error;
-  }
-}
-
-
-async updateItem(itemId, updatedData, newCategoryId) {
-  try {
-    await this.Item.update(updatedData, { where: { id: itemId } });
-
-    if (newCategoryId) {
-      const item = await this.Item.findOne({ where: { id: itemId } });
-
-      if (item) {
-        const newCategory = await this.findCategoryById(newCategoryId);
-        
-        if (newCategory) {
-          await item.setCategories(newCategory);
-        } else {
-          console.log('New category not found, no category assigned to item');
-        }
-      } else {
-        throw new Error("Item not found");
-      }
     }
-
-    return this.getItemById(itemId);
-  } catch (error) {
-    console.error('Error updating item:', error);
-    throw error;
   }
-}
+
+  async updateItem(itemId, updatedData, newCategoryId) {
+    try {
+      await this.Item.update(updatedData, { where: { id: itemId } });
+
+      if (newCategoryId) {
+        const item = await this.Item.findOne({ where: { id: itemId } });
+        if (item) {
+          const newCategory = await this.findCategoryById(newCategoryId);
+          if (newCategory) {
+            await item.setCategories(newCategory);
+          } else {
+            console.log("New category not found, no category assigned to item");
+          }
+        } else {
+          throw new Error("Item not found");
+        }
+      }
+
+      return this.getItemById(itemId);
+    } catch (error) {
+      console.error("Error updating item:", error);
+      throw error;
+    }
+  }
 
   async deleteItem(itemId) {
     return this.Item.destroy({ where: { id: itemId } });
   }
-
 }
 
 module.exports = ItemService;

@@ -1,4 +1,4 @@
-const { Op } = require("sequelize")
+const { Op } = require("sequelize");
 
 class OrderService {
   constructor(db) {
@@ -7,56 +7,58 @@ class OrderService {
     this.Item = db.Item;
     this.User = db.User;
     this.CartItem = db.CartItem;
-    this.Cart = db.Cart
+    this.Cart = db.Cart;
     this.db = db;
   }
 
   async getUserOrders(userId) {
     const user = await this.User.findOne({
-        where: { id: userId },
+      where: { id: userId },
     });
 
     const usersWithSameEmail = await this.User.count({
-        where: { email: user.email },
+      where: { email: user.email },
     });
 
     let discount = 0;
 
     if (usersWithSameEmail === 2) {
-        discount = 0.10;
+      discount = 0.1;
     } else if (usersWithSameEmail === 3) {
-        discount = 0.30;
+      discount = 0.3;
     } else if (usersWithSameEmail >= 4) {
-        discount = 0.40;
+      discount = 0.4;
     }
 
     const orders = await this.Order.findAll({
-        where: { userId },
-        include: [{
-            model: this.OrderItem,
-            as: 'orderitems',
-            include: {
-                model: this.Item,
-                as: 'item'
-            }
-        }]
+      where: { userId },
+      include: [
+        {
+          model: this.OrderItem,
+          as: "orderitems",
+          include: {
+            model: this.Item,
+            as: "item",
+          },
+        },
+      ],
     });
 
     return {
-        user: {
-            id: user.id,
-            username: user.username,
-            email: user.email,
-            discount: `${discount * 100}%`,
-            usersWithSameEmail
-        },
-        orders
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        discount: `${discount * 100}%`,
+        usersWithSameEmail,
+      },
+      orders,
     };
-}
-  
-async getAllOrders() {
-  try {
-    const query = `
+  }
+
+  async getAllOrders() {
+    try {
+      const query = `
       SELECT
         o.id AS orderId,
         u.id AS userId,
@@ -82,88 +84,96 @@ async getAllOrders() {
         o.id, oi.id
     `;
 
-    const [results] = await this.db.sequelize.query(query);
+      const [results] = await this.db.sequelize.query(query);
 
-    const orders = {};
+      const orders = {};
 
-    for (const row of results) {
-      const { orderId, userId, userName, fullName, userEmail, orderItemId, orderStatus, ...item } = row;
-
-      if (!orders[orderId]) {
-        const usersWithSameEmail = await this.User.count({
-          where: { email: userEmail },
-        });
-
-        let discount = 0;
-
-        if (usersWithSameEmail === 2) {
-          discount = 0.10;
-        } else if (usersWithSameEmail === 3) {
-          discount = 0.30;
-        } else if (usersWithSameEmail >= 4) {
-          discount = 0.40;
-        }
-
-        orders[orderId] = {
+      for (const row of results) {
+        const {
           orderId,
           userId,
           userName,
           fullName,
           userEmail,
-          orderStatus,
-          discount: `${discount * 100}%`,
-          usersWithSameEmail,
-          orderItems: [],
-        };
-      }
-
-      if (orderItemId) {
-        orders[orderId].orderItems.push({
           orderItemId,
-          ...item,
-        });
-      }
-    }
+          orderStatus,
+          ...item
+        } = row;
 
-    return Object.values(orders);
-  } catch (error) {
-    console.error('Error retrieving orders:', error);
-    throw error;
+        if (!orders[orderId]) {
+          const usersWithSameEmail = await this.User.count({
+            where: { email: userEmail },
+          });
+
+          let discount = 0;
+
+          if (usersWithSameEmail === 2) {
+            discount = 0.1;
+          } else if (usersWithSameEmail === 3) {
+            discount = 0.3;
+          } else if (usersWithSameEmail >= 4) {
+            discount = 0.4;
+          }
+
+          orders[orderId] = {
+            orderId,
+            userId,
+            userName,
+            fullName,
+            userEmail,
+            orderStatus,
+            discount: `${discount * 100}%`,
+            usersWithSameEmail,
+            orderItems: [],
+          };
+        }
+
+        if (orderItemId) {
+          orders[orderId].orderItems.push({
+            orderItemId,
+            ...item,
+          });
+        }
+      }
+
+      return Object.values(orders);
+    } catch (error) {
+      console.error("Error retrieving orders:", error);
+      throw error;
+    }
   }
-}
-  
-  
+
   async createOrder(userId, itemId) {
     const t = await this.Order.sequelize.transaction();
-  
+
     try {
       let order = null;
       let userCart = await this.Cart.findOne({
         where: { userId },
       });
-  
+
       if (!userCart) {
         throw new Error(`No cart found for the user with ID ${userId}`);
       }
-  
+
       const user = await this.User.findOne({
         where: { id: userId },
       });
-  
+
       const usersWithSameEmail = await this.User.count({
         where: { email: user.email },
       });
-  
+
       let discount = 0;
-  
+
       if (usersWithSameEmail === 2) {
-        discount = 0.10;
+        discount = 0.1;
       } else if (usersWithSameEmail === 3) {
-        discount = 0.30;
+        discount = 0.3;
       } else if (usersWithSameEmail >= 4) {
-        discount = 0.40;
+        discount = 0.4;
       }
-  
+
       if (itemId) {
         const cartItem = await this.CartItem.findOne({
           where: {
@@ -172,44 +182,44 @@ async getAllOrders() {
           },
           include: {
             model: this.Item,
-            as: 'item',
+            as: "item",
           },
         });
-  
+
         if (!cartItem) {
           throw new Error(`Item with ID ${itemId} does not exist in the cart`);
         }
-  
+
         const item = await this.Item.findByPk(itemId);
-  
+
         if (!item) {
           throw new Error(`Item with ID ${itemId} does not exist`);
         }
-  
+
         if (item.stock_quantity < cartItem.quantity) {
           throw new Error(`Not enough stock for item ${itemId}`);
         }
-  
+
         const itemTotal = item.price * cartItem.quantity * (1 - discount);
-  
+
         order = await this.Order.findOne({
           where: {
             userId,
-            status: 'In Process',
+            status: "In Process",
           },
           transaction: t,
         });
-  
+
         if (!order) {
           order = await this.Order.create(
-            { userId, status: 'In Process', total: itemTotal },
+            { userId, status: "In Process", total: itemTotal },
             { transaction: t }
           );
         } else {
           order.total += itemTotal;
           await order.save({ transaction: t });
         }
-  
+
         await this.OrderItem.create(
           {
             orderId: order.id,
@@ -219,10 +229,10 @@ async getAllOrders() {
           },
           { transaction: t }
         );
-  
+
         item.stock_quantity -= cartItem.quantity;
         await item.save({ transaction: t });
-  
+
         await cartItem.destroy({ transaction: t });
       } else {
         const cartItems = await this.CartItem.findAll({
@@ -231,45 +241,45 @@ async getAllOrders() {
           },
           include: {
             model: this.Item,
-            as: 'item',
+            as: "item",
           },
         });
-  
+
         if (cartItems.length === 0) {
-          throw new Error('Cart is empty');
+          throw new Error("Cart is empty");
         }
-  
+
         order = await this.Order.findOne({
           where: {
             userId,
-            status: 'In Process',
+            status: "In Process",
           },
           transaction: t,
         });
-  
+
         if (!order) {
           order = await this.Order.create(
-            { userId, status: 'In Process', total: 0 },
+            { userId, status: "In Process", total: 0 },
             { transaction: t }
           );
         }
-  
+
         for (const cartItem of cartItems) {
           const item = await this.Item.findByPk(cartItem.itemId);
-  
+
           if (!item) {
             throw new Error(`Item with ID ${cartItem.itemId} does not exist`);
           }
-  
+
           if (item.stock_quantity < cartItem.quantity) {
             throw new Error(`Not enough stock for item ${cartItem.itemId}`);
           }
-  
+
           const itemTotal = item.price * cartItem.quantity * (1 - discount);
-  
+
           order.total += itemTotal;
           await order.save({ transaction: t });
-  
+
           await this.OrderItem.create(
             {
               orderId: order.id,
@@ -279,29 +289,28 @@ async getAllOrders() {
             },
             { transaction: t }
           );
-  
+
           item.stock_quantity -= cartItem.quantity;
           await item.save({ transaction: t });
         }
-  
+
         for (const cartItem of cartItems) {
           await cartItem.destroy({ transaction: t });
         }
       }
-  
+
       await t.commit();
-  
+
       return {
         order,
-        discount: `${discount * 100}%`, 
-        usersWithSameEmail
+        discount: `${discount * 100}%`,
+        usersWithSameEmail,
       };
     } catch (error) {
       await t.rollback();
       throw error;
     }
   }
-  
 
   async getOrderById(orderId) {
     const order = await this.Order.findOne({
@@ -309,46 +318,46 @@ async getAllOrders() {
       include: [
         {
           model: this.OrderItem,
-          as: 'orderitems',
+          as: "orderitems",
           include: {
             model: this.Item,
-            as: 'item'
-          }
+            as: "item",
+          },
         },
         {
           model: this.User,
-          as: 'user'
-        }
-      ]
+          as: "user",
+        },
+      ],
     });
-  
+
     if (!order) {
       return null;
     }
-  
+
     const usersWithSameEmail = await this.User.count({
       where: { email: order.user.email },
     });
-  
+
     let discount = 0;
-  
+
     if (usersWithSameEmail === 2) {
-      discount = 0.10;
+      discount = 0.1;
     } else if (usersWithSameEmail === 3) {
-      discount = 0.30;
+      discount = 0.3;
     } else if (usersWithSameEmail >= 4) {
-      discount = 0.40;
+      discount = 0.4;
     }
-  
+
     return {
       orderId: order.id,
       userId: order.user.id,
       userName: order.user.username,
-      fullName: order.user.fullname, 
+      fullName: order.user.fullname,
       userDiscount: `${discount * 100}%`,
       usersWithSameEmail,
       orderStatus: order.status,
-      orderItems: order.orderitems.map(item => {
+      orderItems: order.orderitems.map((item) => {
         return {
           orderItemId: item.id,
           itemId: item.item.id,
@@ -358,21 +367,19 @@ async getAllOrders() {
           price: item.item.price,
           imgUrl: item.item.img_url,
           sku: item.item.sku,
-          stockQuantity: item.item.stock_quantity
-        }
-      })
+          stockQuantity: item.item.stock_quantity,
+        };
+      }),
     };
   }
 
   async updateOrderStatus(orderId, status) {
-    
     const validStatuses = ["In Process", "Completed", "Cancelled"];
 
     if (!validStatuses.includes(status)) {
       throw new Error("Invalid order status");
     }
 
-   
     await this.Order.update({ status }, { where: { id: orderId } });
 
     return this.getOrderById(orderId);

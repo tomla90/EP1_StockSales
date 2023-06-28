@@ -1,10 +1,10 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const jsend = require('jsend');
+const jsend = require("jsend");
 const db = require("../models");
-const crypto = require('crypto');
-const jwt = require('jsonwebtoken');
-const regex = require('../utils/regex');
+const crypto = require("crypto");
+const jwt = require("jsonwebtoken");
+const regex = require("../utils/regex");
 
 router.use(jsend.middleware);
 
@@ -14,13 +14,17 @@ router.post("/", async (req, res) => {
     return res.jsend.fail({ fullname: "Fullname is required." });
   }
   if (!username || !regex.username.test(username)) {
-    return res.jsend.fail({ username: "Username is not valid or is already taken." });
+    return res.jsend.fail({
+      username: "Username is not valid or is already taken.",
+    });
   }
   if (!email || !regex.email.test(email)) {
     return res.jsend.fail({ email: "Email is not valid." });
   }
   if (!password || !regex.passwordLength.test(password)) {
-    return res.jsend.fail({ password: "Password should be at least 8 characters." });
+    return res.jsend.fail({
+      password: "Password should be at least 8 characters.",
+    });
   }
 
   try {
@@ -30,7 +34,7 @@ router.post("/", async (req, res) => {
       salt,
       310000,
       32,
-      'sha256'
+      "sha256"
     );
 
     const newUser = await db.User.create({
@@ -38,40 +42,39 @@ router.post("/", async (req, res) => {
       username: username,
       email: email,
       EncryptedPassword: hashedPassword,
-      Salt: salt
+      Salt: salt,
     });
 
     const totalUsers = await db.User.count();
 
-    let adminRole = await db.Role.findOne({ where: { name: 'Admin' } });
-    let userRole = await db.Role.findOne({ where: { name: 'User' } });
-    
+    let adminRole = await db.Role.findOne({ where: { name: "Admin" } });
+    let userRole = await db.Role.findOne({ where: { name: "User" } });
+
     if (!adminRole) {
-      adminRole = await db.Role.create({ name: 'Admin' });
+      adminRole = await db.Role.create({ name: "Admin" });
     }
     if (!userRole) {
-      userRole = await db.Role.create({ name: 'User' });
+      userRole = await db.Role.create({ name: "User" });
     }
 
-    
     if (totalUsers === 1) {
       await newUser.setRoles([adminRole]);
       return res.jsend.success({
         id: newUser.id,
-        result: "You created an account with Admin role."
+        result: "You created an account with Admin role.",
       });
     }
 
     await newUser.setRoles([userRole]);
     res.jsend.success({
       id: newUser.id,
-      result: "You created an account with User role."
+      result: "You created an account with User role.",
     });
   } catch (error) {
-    if (error.name === 'SequelizeUniqueConstraintError') {
+    if (error.name === "SequelizeUniqueConstraintError") {
       const duplicateField = error.errors[0].path;
-      if (duplicateField === 'username') {
-        return res.jsend.fail({ username: 'Username already exists.' });
+      if (duplicateField === "username") {
+        return res.jsend.fail({ username: "Username already exists." });
       }
     }
     console.error(error);
